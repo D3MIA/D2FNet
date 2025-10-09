@@ -592,9 +592,11 @@ Average Ensemble → Evaluate R²/MAE
 
 #### Visual Results
 
-**Example Prediction Overlay - Frame 250**
+**Example Prediction Overlay - Frames 753 and 1995 chosen randomly after infering with the FOLD 2 model on the run seed 3333**
 
-![Ground Truth vs Prediction Overlay](CNN_approach/overlay_0250.png)
+![Ground Truth vs Prediction Overlay](CNN_approach/overlay_0753.png)
+![Ground Truth vs Prediction Overlay](CNN_approach/overlay_1995.png)
+
 
 *Side-by-side comparison showing ground truth (left) and predicted forces (right) with spatial force distribution overlay on brain surface.*
 
