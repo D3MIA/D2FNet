@@ -592,9 +592,11 @@ Average Ensemble → Evaluate R²/MAE
 
 #### Visual Results
 
-- **Example Prediction Overlay**: [`CNN_approach/overlay_0250.png`](CNN_approach/overlay_0250.png)
-  - Side-by-side comparison of ground truth vs predicted forces
-  - Visual validation of spatial force distribution accuracy
+**Example Prediction Overlay - Frame 250**
+
+![Ground Truth vs Prediction Overlay](CNN_approach/overlay_0250.png)
+
+*Side-by-side comparison showing ground truth (left) and predicted forces (right) with spatial force distribution overlay on brain surface.*
 
 #### Trained Models Location
 
