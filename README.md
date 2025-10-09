@@ -54,6 +54,8 @@ Data is stored in `.npz` files with the following structure:
 
 > **Data Generation**: All datasets were generated using the SOFA-based simulation pipeline documented in the [Sofa-Simulation-Recorder](https://github.com/D3MIA/Sofa-Simulation-Recorder) repository. This pipeline allows for reproducible brain surface simulation data generation with customizable parameters.
 
+
+
 | Property | Description |
 |----------|-------------|
 | **Nodes** | ~40,652 nodes per surface  |
