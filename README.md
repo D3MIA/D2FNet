@@ -60,7 +60,7 @@ Data is stored in `.npz` files with the following structure:
 |----------|-------------|
 | **Nodes** | ~40,652 nodes per surface  |
 | **Timesteps** | We have 2000 per dataset |
-| **Displacements** | Coordinates (x, y) in mm, normalized by P98 (~5-6 mm) |
+| **Displacements** | Coordinates (x, y) in mm, normalized by P99.9 (~5-6 mm) |
 | **Forces** | Magnitude in Newtons, normalized by 3.0N | 
 
 ### Dataset Organization
@@ -80,12 +80,14 @@ datasets_2d_modified/
 
 ### Data Preprocessing for CNN only
 
-#### Robust Normalization (P98/P99)
+#### Robust Normalization (P99.9)
 
 ```python
 # Displacements
-dx_normalized = dx / dx_scale    # dx_scale = P98(|dx|) ≈ 5.27 mm
-dy_normalized = dy / dy_scale    # dy_scale = P98(|dy|) ≈ 4.75 mm
+dx_normalized = dx / dx_scale    # dx_scale = P99.9(|dx|) 
+dy_normalized = dy / dy_scale    # dy_scale = P99.9(|dy|)
+
+Les scales seront sauvegardés dans les checkpoints.
 
 # Forces
 force_normalized = force / 3.0   # Fixed normalization at 3.0N
@@ -427,7 +429,7 @@ Gradient-Boosting_LightGBM_approach/models/
 **Pipeline Overview**:
 
 ```
-NPZ Files → StableSpatialDataset → Normalize P98/P99 → Create Brain Mask → 
+NPZ Files → StableSpatialDataset → Normalize P99.9 → Create Brain Mask → 
 Filter Border X>1400 → Grid 256x256 → DataLoader (batch=8) → AdvancedUNet → 
 ImprovedAdaptiveR2Loss → AdamW + ReduceLROnPlateau → Save Best R²
 ```
@@ -436,7 +438,7 @@ ImprovedAdaptiveR2Loss → AdamW + ReduceLROnPlateau → Save Best R²
 
 1. **Data Loading** (`StableSpatialDataset`)
    - Read NPZ (positions, forces)
-   - Compute robust statistics (P98, P99)
+   - Compute robust statistics (P99.9)
    - Normalize displacements and forces
 
 2. **Brain Mask Creation**
