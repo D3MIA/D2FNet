@@ -197,7 +197,7 @@ def extract_ultra_advanced_features(positions: np.ndarray) -> np.ndarray:
 
 def load_run_6842_data():
     """Load run 6842 data"""
-    print_progress("🚀 LOADING RUN 6842 DATA", "PROGRESS")
+    print_progress("LOADING RUN 6842 DATA", "PROGRESS")
     start_time = time.time()
     
     # Load data
@@ -226,7 +226,7 @@ def load_run_6842_data():
 
 def main():
     """Main inference pipeline - SAVES FIRST, then attempts visualization"""
-    print_progress("🚀 STARTING SAFE INFERENCE ON RUN 6842", "SUCCESS")
+    print_progress("STARTING SAFE INFERENCE ON RUN 6842", "SUCCESS")
     print_progress("=" * 70)
     
     overall_start = time.time()
@@ -299,13 +299,13 @@ def main():
         
         # Make predictions
         n_samples = X_selected.shape[0]
-        print_progress(f"🔮 Making predictions on {n_samples:,} samples...")
+        print_progress(f"Making predictions on {n_samples:,} samples...")
         
         # Batch prediction
         batch_size = 100000
         predictions = []
         
-        for i in tqdm(range(0, n_samples, batch_size), desc="🔮 Predicting batches"):
+        for i in tqdm(range(0, n_samples, batch_size), desc="Predicting batches"):
             batch_start = i
             batch_end = min(i + batch_size, n_samples)
             

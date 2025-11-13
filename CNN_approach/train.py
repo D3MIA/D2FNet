@@ -2,13 +2,13 @@
 """
 CNN Training Script with Hybrid R²-AntiGhost Loss
 ==================================================
-3-Fold Cross-Validation training for force prediction using AdvancedUNet architecture.
+3-Fold Cross-Validation training for force prediction using D2FNet architecture.
 """
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 import numpy as np
 import logging
 from pathlib import Path
@@ -19,10 +19,11 @@ import argparse
 import sys
 
 sys.path.append('.')
-from spatial_cnn_ultra_stable import StableSpatialDataset
-from advanced_r2_model import AdvancedUNet
-from anti_ghost_loss import ImprovedAdaptiveR2Loss
+from dataset import StableSpatialDataset
+from model import D2FNet
+from loss import ImprovedAdaptiveR2Loss
 
+# Configuration logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -45,15 +46,20 @@ def train_epoch(model, loader, optimizer, criterion, device, epoch):
         targets = targets.to(device)
         
         optimizer.zero_grad()
+        
         outputs = model(inputs)
         loss = criterion(outputs, targets)
+        
         loss.backward()
         
+        # Gradient clipping
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        
         optimizer.step()
         
         total_loss += loss.item()
         n_batches += 1
+        
         pbar.set_postfix({'loss': f'{loss.item():.6f}'})
     
     return total_loss / n_batches
@@ -87,7 +93,6 @@ def validate_epoch(model, loader, criterion, device, brain_mask):
             total_loss += loss.item()
             n_batches += 1
             
-            # Move to CPU for metric computation
             outputs_np = outputs.cpu().numpy()
             targets_np = targets.cpu().numpy()
             
@@ -116,6 +121,7 @@ def validate_epoch(model, loader, criterion, device, brain_mask):
     return total_loss / n_batches, r2, mae
 
 def main():
+    # Parse arguments
     parser = argparse.ArgumentParser(description='CNN Training with Hybrid R²-AntiGhost Loss')
     parser.add_argument('--fold', type=int, choices=[1, 2, 3], default=None,
                         help='Run specific fold only (1, 2, or 3). If not specified, runs all folds.')
@@ -128,13 +134,14 @@ def main():
     logger.info("=" * 80)
     logger.info("Configuration:")
     logger.info("   - Loss: ImprovedAdaptiveR2Loss (30% R² + 70% AntiGhost)")
-    logger.info("   - Ghost penalty: 3.0x on low force zones (<0.05N)")
+    logger.info("   - Ghost penalty: 3.0x on low force frames (<0.05N)")
     logger.info("   - Right border filtering: X > 1400mm excluded")
-    logger.info("   - Architecture: AdvancedUNet with Multi-Scale Attention")
+    logger.info("   - Architecture: D2FNet with Multi-Scale Attention")
     logger.info("   - Validation: CPU with preallocated arrays")
     if args.fold:
         logger.info(f"   - Running single fold: {args.fold}")
     
+    # Configuration
     BASE_DIR = Path('datasets_2d_modified')
     ALL_DATASETS = [
         'run_seed_1111', 'run_seed_1200', 'run_seed_1324', 'run_seed_2004', 'run_seed_2191',
@@ -222,10 +229,15 @@ def main():
             max_timesteps=2000,
             grid_size=(256, 256)
         )
+        
+        # VALIDATION: Reuse TRAINING scales for consistency!
         val_dataset = StableSpatialDataset(
             npz_files=val_files,
             max_timesteps=2000,
-            grid_size=(256, 256)
+            grid_size=(256, 256),
+            fixed_dx_scale=train_dataset.dx_scale,
+            fixed_dy_scale=train_dataset.dy_scale,
+            fixed_force_scale=train_dataset.force_scale
         )
         logger.info(f"Train: {len(train_dataset)} samples, Val: {len(val_dataset)} samples")
         
@@ -234,7 +246,7 @@ def main():
         
         # Initialize model for this fold
         logger.info(f"\nInitializing model for fold {fold_idx}...")
-        model = AdvancedUNet(in_channels=5).to(device)
+        model = D2FNet(in_channels=5).to(device)
         
         # Hybrid loss function
         criterion = ImprovedAdaptiveR2Loss(
@@ -285,7 +297,11 @@ def main():
                     'optimizer_state_dict': optimizer.state_dict(),
                     'val_r2': val_r2,
                     'val_mae': val_mae,
-                    'val_loss': val_loss
+                    'val_loss': val_loss,
+                    # Save scales for inference!
+                    'dx_scale': train_dataset.dx_scale,
+                    'dy_scale': train_dataset.dy_scale,
+                    'force_scale': train_dataset.force_scale
                 }
                 
                 torch.save(checkpoint, OUTPUT_DIR / f'best_model_fold_{fold_idx}.pth')
@@ -304,12 +320,14 @@ def main():
         
         logger.info(f"\nFold {fold_idx} completed - Best R²: {best_r2:.4f}")
     
+    # JUST A REORGANIZATION STEP
     # Merge with existing results if running single fold
     if args.fold and (OUTPUT_DIR / 'cv_results.pkl').exists():
         logger.info(f"\nUpdating existing CV results...")
         with open(OUTPUT_DIR / 'cv_results.pkl', 'rb') as f:
             existing_results = pickle.load(f)
         existing_results = [r for r in existing_results if r['fold'] != args.fold]
+        # Add new result
         cv_results = existing_results + cv_results
         logger.info(f"   Updated results (total: {len(cv_results)} folds)")
     
@@ -333,6 +351,7 @@ def main():
         logger.info(f"   Mean R²:  {np.mean(all_r2):.4f} ± {np.std(all_r2):.4f}")
         logger.info(f"   Mean MAE: {np.mean(all_mae):.4f} ± {np.std(all_mae):.4f} N")
     
+    # Sauvegarder résultats CV
     with open(OUTPUT_DIR / 'cv_results.pkl', 'wb') as f:
         pickle.dump(cv_results, f)
     

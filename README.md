@@ -80,15 +80,12 @@ datasets_2d_modified/
 
 ### Data Preprocessing for CNN only
 
-#### Robust Normalization (P99.9)
+#### Normalization
 
 ```python
 # Displacements
 dx_normalized = dx / dx_scale    # dx_scale = P99.9(|dx|) 
-dy_normalized = dy / dy_scale    # dy_scale = P99.9(|dy|)
-
-Les scales seront sauvegardés dans les checkpoints.
-
+dy_normalized = dy / dy_scale    # dy_scale = P99.9(|dy|) 
 # Forces
 force_normalized = force / 3.0   # Fixed normalization at 3.0N
 ```
@@ -102,9 +99,9 @@ force_normalized = force / 3.0   # Fixed normalization at 3.0N
 
 ### 1. CNN Approach (Deep Learning)
 
-**Base Architecture**: AdvancedUNet with Multi-Scale Attention
+**Base Architecture**: D2FNet with Multi-Scale Attention
 
-We use an advanced U-Net architecture enhanced with multi-scale attention mechanisms and pyramid pooling. The network takes multi-channel images representing displacements and positions as input, and predicts force magnitude at each point through adaptive multi-scale fusion.
+We use an advanced U-Net architecture (D2FNet) enhanced with multi-scale attention mechanisms and pyramid pooling. The network takes multi-channel images representing displacements and positions as input, and predicts force magnitude at each point through adaptive multi-scale fusion.
 
 ```
 Input: (batch, 5, 256, 256)
@@ -148,7 +145,7 @@ Adaptive Fusion:
 
 **Model Size**: 13.08M trainable parameters (~50 MB)
 
-**File**: `CNN_approach/advanced_r2_model.py`
+**File**: `CNN_approach/model.py`
 
 #### Input Data Representation
 
@@ -218,7 +215,7 @@ where:
 -  Penalizes errors ×3 in critical zones (low forces < 0.05N)
 -  Automatic balance between global accuracy and local quality
 
-**File**: `CNN_approach/anti_ghost_loss.py`
+**File**: `CNN_approach/loss.py`
 
 #### Training Configuration
 
@@ -238,7 +235,7 @@ GRADIENT_CLIPPING = 1.0
 |------|---------------------|------------------|
 | 1 | 1324, 2004, 2191, 2222, 321, 3333, 4444, 4509, 6842, 7777, 789, 8888, 9999 | 1111, 1200, 5555, 6666, 960, 9806 |
 | 2 | 1111, 1200, 2004, 2191, 2222, 321, 4444, 5555, 6666, 789, 960, 9806, 9999 | 1324, 3333, 4509, 6842, 7777, 8888 |
-| 3 | 2004, 1200, 1324, 3333, 4444, 4509, 5555, 6666, 6842, 7777, 321, 960, 9806 | 1111, 2191, 2222, 8888, 789, 9999 |
+| 3 | 1200, 1324, 3333, 4444, 4509, 5555, 6666, 6842, 7777, 8888, 960, 9806, 9999 | 1111, 2004, 2191, 2222, 321, 789 |
 
 **Validation Metrics**:
 - **R² score**: Coefficient of determination (primary target)
@@ -246,10 +243,10 @@ GRADIENT_CLIPPING = 1.0
 - **Loss**: ImprovedAdaptiveR2Loss
 
 **Files**:
-- Training script: `CNN_approach/train_cnn.py`
-- Dataset loader: `CNN_approach/spatial_cnn_ultra_stable.py`
-- Model architecture: `CNN_approach/advanced_r2_model.py`
-- Loss function: `CNN_approach/anti_ghost_loss.py`
+- Training script: `CNN_approach/train.py`
+- Dataset loader: `CNN_approach/dataset.py`
+- Model architecture: `CNN_approach/model.py`
+- Loss function: `CNN_approach/loss.py`
 
 ---
 
@@ -429,8 +426,8 @@ Gradient-Boosting_LightGBM_approach/models/
 **Pipeline Overview**:
 
 ```
-NPZ Files → StableSpatialDataset → Normalize P99.9 → Create Brain Mask → 
-Filter Border X>1400 → Grid 256x256 → DataLoader (batch=8) → AdvancedUNet → 
+NPZ Files → StableSpatialDataset → Normalize → Create Brain Mask → 
+Filter Border X>1400 → Grid 256x256 → DataLoader (batch=8) → D2FNet → 
 ImprovedAdaptiveR2Loss → AdamW + ReduceLROnPlateau → Save Best R²
 ```
 
@@ -455,7 +452,7 @@ ImprovedAdaptiveR2Loss → AdamW + ReduceLROnPlateau → Save Best R²
    - Build 5-channel input
 
 5. **Training Loop**
-   - Forward pass: AdvancedUNet
+   - Forward pass: D2FNet
    - Loss: ImprovedAdaptiveR2Loss
    - Backward: Gradient clipping (max_norm=1.0)
    - Optimizer: AdamW step
@@ -542,8 +539,8 @@ Average Ensemble → Evaluate R²/MAE
 | lgb_feature_rich_cv | 0.8183 | 0.0247 | 1204.7s |
 
 #### Fold 3
-- **Train datasets**: 1111, 1200, 1324, 3333, 4444, 4509, 5555, 6666, 6842, 7777, 8888, 960, 9806
-- **Val datasets**: 2004, 2191, 2222, 321, 789, 9999
+- **Train datasets**: 1200, 1324, 3333, 4444, 4509, 5555, 6666, 6842, 7777, 8888, 960, 9806, 9999
+- **Val datasets**: 1111, 2004, 2191, 2222, 321, 789
 
 | Model | Val R² | Val MAE (N) | Training Time |
 |-------|--------|-------------|---------------|
@@ -554,7 +551,7 @@ Average Ensemble → Evaluate R²/MAE
 ### CNN Approach (Deep Learning) - 3-Fold CV Results
 
 **Training Configuration**:
-- **Architecture**: AdvancedUNet with Multi-Scale Attention and Pyramid Pooling
+- **Architecture**: D2FNet with Multi-Scale Attention and Pyramid Pooling
 - **Loss Function**: ImprovedAdaptiveR2Loss (30% R² + 70% AntiGhost)
 - **Datasets**: 19 datasets total (13 train / 6 val per fold)
 - **Training**: 50 epochs, batch_size=8, LR=0.0005, AdamW optimizer
@@ -621,4 +618,4 @@ Average Ensemble → Evaluate R²/MAE
 
 ---
 
-**Last updated**: October 8, 2025
+**Last updated**: November 13, 2025

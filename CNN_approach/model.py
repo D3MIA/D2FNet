@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Advanced U-Net Architecture with Multi-Scale Attention
+D2FNet Architecture with Multi-Scale Attention
 ======================================================
 Enhanced architecture with attention mechanisms and pyramid pooling
 for improved force prediction (target R² > 0.8).
@@ -78,9 +78,9 @@ class PyramidPooling(nn.Module):
         cat_features = torch.cat([x] + pool_features, dim=1)
         return self.final_conv(cat_features)
 
-class AdvancedUNet(nn.Module):
+class D2FNet(nn.Module):
     """
-    Advanced U-Net with multi-scale attention and pyramid pooling.
+    D2FNet with multi-scale attention and pyramid pooling.
     Architecture: 5→32→64→128→256→512 with attention at each level.
     """
     

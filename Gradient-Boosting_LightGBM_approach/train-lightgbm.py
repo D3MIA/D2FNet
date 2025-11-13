@@ -154,10 +154,10 @@ class UltraLightGBM19DatasetsCV:
         if not self.dataset_files:
             raise ValueError(f"No dataset files found in {data_root}")
         
-        self.logger.info(f"📦 Dataset source: {data_root}")
-        self.logger.info(f"📊 Found {len(self.dataset_files)} total dataset files")
-        self.logger.info(f"🎯 Using ALL {len(self.dataset_files)} datasets for 3-fold CV")
-        self.logger.info(f"📏 Max samples per dataset: {self.max_samples_per_file:,}")
+        self.logger.info(f"Dataset source: {data_root}")
+        self.logger.info(f"Found {len(self.dataset_files)} total dataset files")
+        self.logger.info(f"Using ALL {len(self.dataset_files)} datasets for 3-fold CV")
+        self.logger.info(f"Max samples per dataset: {self.max_samples_per_file:,}")
         self.logger.info(f"🔄 Spatial subsampling: 20,000 nodes (regular)")
         
         # 3-FOLD CV SPLITS (same as anti-ghost hybrid)
@@ -234,7 +234,7 @@ class UltraLightGBM19DatasetsCV:
             matching_files = [f for f in self.dataset_files if dataset_name in f]
             
             if not matching_files:
-                self.logger.warning(f"⚠️ Dataset {dataset_name} not found!")
+                self.logger.warning(f"WARNING: Dataset {dataset_name} not found!")
                 continue
             
             file_path = matching_files[0]
@@ -281,7 +281,7 @@ class UltraLightGBM19DatasetsCV:
             y[sample_count:sample_count+n_samples] = targets
             sample_count += n_samples
             
-            self.logger.info(f"   ✅ {n_samples:,} samples")
+            self.logger.info(f"   {n_samples:,} samples")
         
         # Trim to actual size (in case some datasets were skipped)
         X = X[:sample_count]
@@ -292,26 +292,26 @@ class UltraLightGBM19DatasetsCV:
     def train_with_cv(self) -> Dict:
         """Train with 3-fold cross-validation"""
         self.logger.info("\n" + "="*80)
-        self.logger.info("🚀 STARTING 3-FOLD CROSS-VALIDATION (19 DATASETS)")
+        self.logger.info("STARTING 3-FOLD CROSS-VALIDATION (19 DATASETS)")
         self.logger.info("="*80)
         
         cv_results = {}
         
         for fold_idx, split in enumerate(self.cv_splits, 1):
             self.logger.info(f"\n{'='*80}")
-            self.logger.info(f"📊 FOLD {fold_idx}/3")
+            self.logger.info(f"FOLD {fold_idx}/3")
             self.logger.info(f"{'='*80}")
             self.logger.info(f"🏋️  Train: {len(split['train'])} datasets - {split['train']}")
-            self.logger.info(f"✅ Val: {len(split['val'])} datasets - {split['val']}")
+            self.logger.info(f"Val: {len(split['val'])} datasets - {split['val']}")
             
             # Load data for this fold
-            self.logger.info("\n📦 Loading training data...")
+            self.logger.info("\nLoading training data...")
             X_train, y_train = self.load_dataset_subset(split['train'])
             
-            self.logger.info("\n📦 Loading validation data...")
+            self.logger.info("\nLoading validation data...")
             X_val, y_val = self.load_dataset_subset(split['val'])
             
-            self.logger.info(f"\n📊 Fold {fold_idx} data:")
+            self.logger.info(f"\nFold {fold_idx} data:")
             self.logger.info(f"   Train: {len(X_train):,} samples, {X_train.shape[1]} features")
             self.logger.info(f"   Val: {len(X_val):,} samples, {X_val.shape[1]} features")
             
@@ -363,7 +363,7 @@ class UltraLightGBM19DatasetsCV:
                     'n_trees': model.booster_.num_trees()
                 }
                 
-                self.logger.info(f"   ✅ {model_name}: Val R²={val_r2:.4f}, MAE={val_mae:.4f} ({train_time:.1f}s)")
+                self.logger.info(f"   {model_name}: Val R²={val_r2:.4f}, MAE={val_mae:.4f} ({train_time:.1f}s)")
                 
                 # Save model
                 model_path = self.output_dir / f"{model_name}_fold{fold_idx}.joblib"
@@ -373,7 +373,7 @@ class UltraLightGBM19DatasetsCV:
         
         # Aggregate CV results
         self.logger.info("\n" + "="*80)
-        self.logger.info("📊 CROSS-VALIDATION SUMMARY")
+        self.logger.info("CROSS-VALIDATION SUMMARY")
         self.logger.info("="*80)
         
         for model_name in self.models.keys():
