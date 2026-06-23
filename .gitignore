@@ -1,2 +1,10 @@
-CNN_approach/inference_enhanced_3333
+Gradient-Boosting_LightGBM_approach/
 
+d2fnet/inference_enhanced_3333/
+d2fnet/train.log
+*.log
+
+__pycache__/
+*.pyc
+.venv/
+.env
