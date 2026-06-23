@@ -128,7 +128,7 @@ Reported on simulated datasets from SOFA-NeuroSim-Recorder:
 Anti-ghost training reduced spurious high-force predictions in low-force regions compared to standard MSE (see paper).
 
 <p align="center">
-  <video src="https://github.com/user-attachments/assets/YOUR-UUID](https://github.com/user-attachments/assets/2b61a284-c86f-4100-b1a4-a2a8d7b859d9" controls width="900"></video>
+  <video src="https://github.com/user-attachments/assets/2b61a284-c86f-4100-b1a4-a2a8d7b859d9" controls width="900"></video>
   <br/>
   <em>Example — predicted force heatmap overlaid on simulated brain surface deformation.</em>
 </p>
@@ -140,8 +140,7 @@ Anti-ghost training reduced spurious high-force predictions in low-force regions
 ```text
 D2FNet/
 ├── docs/
-│   ├── images/d2fnet_architecture.png
-│   └── videos/experimental_force_heatmap.mp4
+│   └── images/d2fnet_architecture.png
 ├── d2fnet/
 │   ├── model.py              # D2FNet architecture
 │   ├── loss.py               # ImprovedAdaptiveR2Loss
